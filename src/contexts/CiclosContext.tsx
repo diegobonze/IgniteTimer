@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useState } from 'react'
+import { ReactNode, createContext, useReducer, useState } from 'react'
 
 interface CreateCicloData {
   task: string
@@ -31,13 +31,60 @@ interface CiclosContextProviderProps {
   children: ReactNode
 }
 
+interface CiclosState {
+  ciclos: Ciclo[]
+  cicloAtivoId: string | null
+}
+
 export function CiclosContextProvider({
   children,
 }: CiclosContextProviderProps) {
-  const [ciclos, setCiclos] = useState<Ciclo[]>([])
-  const [cicloAtivoId, setCicloAtivoId] = useState<string | null>(null)
+  const [ciclosState, dispatch] = useReducer(
+    (state: CiclosState, action: any) => {
+      switch (action.type) {
+        case 'ADD_NEW_CICLO':
+          return {
+            ...state,
+            ciclos: [...state.ciclos, action.payload.novoCiclo],
+            cicloAtivoId: action.payload.novoCiclo.id,
+          }
+        case 'INTERRUPT_CURRENT_CYCLE':
+          return {
+            ...state,
+            ciclos: state.ciclos.map((ciclo) => {
+              if (ciclo.id === state.cicloAtivoId) {
+                return { ...ciclo, interruptedDate: new Date() }
+              } else {
+                return ciclo
+              }
+            }),
+            cicloAtivoId: null,
+          }
+        case 'MARK_CURRENT_CYCLE_AS_FINISHED':
+          return {
+            ...state,
+            ciclos: state.ciclos.map((ciclo) => {
+              if (ciclo.id === state.cicloAtivoId) {
+                return { ...ciclo, finishedDate: new Date() }
+              } else {
+                return ciclo
+              }
+            }),
+            cicloAtivoId: null,
+          }
+        default:
+          return state
+      }
+    },
+    {
+      ciclos: [],
+      cicloAtivoId: null,
+    },
+  )
+
   const [totalSegundosPassados, setTotalSegundosPassados] = useState(0)
 
+  const { ciclos, cicloAtivoId } = ciclosState
   const cicloAtivo = ciclos.find((ciclo) => ciclo.id === cicloAtivoId)
 
   function setSegundosPassados(seconds: number) {
@@ -45,15 +92,12 @@ export function CiclosContextProvider({
   }
 
   function markCurrentCicloAsFinished() {
-    setCiclos((state) =>
-      state.map((ciclo) => {
-        if (ciclo.id === cicloAtivoId) {
-          return { ...ciclo, finishedDate: new Date() }
-        } else {
-          return ciclo
-        }
-      }),
-    )
+    dispatch({
+      type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
+      payload: {
+        cicloAtivoId,
+      },
+    })
   }
 
   function createNewCiclo(data: CreateCicloData) {
@@ -64,23 +108,22 @@ export function CiclosContextProvider({
       startDate: new Date(),
     }
 
-    setCiclos((state) => [...state, novoCiclo])
-    setCicloAtivoId(novoCiclo.id)
+    dispatch({
+      type: 'ADD_NEW_CICLO',
+      payload: {
+        novoCiclo,
+      },
+    })
     setTotalSegundosPassados(0)
   }
 
   function interruptedCurrentCiclo() {
-    setCiclos((state) =>
-      state.map((ciclo) => {
-        if (ciclo.id === cicloAtivoId) {
-          return { ...ciclo, interruptedDate: new Date() }
-        } else {
-          return ciclo
-        }
-      }),
-    )
-
-    setCicloAtivoId(null)
+    dispatch({
+      type: 'INTERRUPT_CURRENT_CYCLE',
+      payload: {
+        cicloAtivoId,
+      },
+    })
   }
 
   return (
