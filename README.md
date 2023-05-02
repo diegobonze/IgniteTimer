@@ -19,6 +19,8 @@
 
 Projeto desenvolvido através da Trilha Ignite da Rocketseat
 
+[🔗 Clique aqui para acessar](https://ignite-timer-vert.vercel.app/)
+
 ## 🚀 Tecnologias
 
 Esse projeto foi desenvolvido com as seguintes tecnologias:
