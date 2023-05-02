@@ -1,17 +1,14 @@
 import { ReactNode, createContext, useReducer, useState } from 'react'
+import { Ciclo, ciclosReducers } from '../reducers/ciclos/reducer'
+import {
+  addNewCycleAction,
+  interruptedCurrentCicloAction,
+  markCurrentCycleAsFinishedAction,
+} from '../reducers/ciclos/actions'
 
 interface CreateCicloData {
   task: string
   minutesAmount: number
-}
-
-interface Ciclo {
-  id: string
-  task: string
-  minutesAmount: number
-  startDate: Date
-  interruptedDate?: Date
-  finishedDate?: Date
 }
 
 interface CiclosContextTypes {
@@ -31,60 +28,18 @@ interface CiclosContextProviderProps {
   children: ReactNode
 }
 
-interface CiclosState {
-  ciclos: Ciclo[]
-  cicloAtivoId: string | null
-}
-
 export function CiclosContextProvider({
   children,
 }: CiclosContextProviderProps) {
-  const [ciclosState, dispatch] = useReducer(
-    (state: CiclosState, action: any) => {
-      switch (action.type) {
-        case 'ADD_NEW_CICLO':
-          return {
-            ...state,
-            ciclos: [...state.ciclos, action.payload.novoCiclo],
-            cicloAtivoId: action.payload.novoCiclo.id,
-          }
-        case 'INTERRUPT_CURRENT_CYCLE':
-          return {
-            ...state,
-            ciclos: state.ciclos.map((ciclo) => {
-              if (ciclo.id === state.cicloAtivoId) {
-                return { ...ciclo, interruptedDate: new Date() }
-              } else {
-                return ciclo
-              }
-            }),
-            cicloAtivoId: null,
-          }
-        case 'MARK_CURRENT_CYCLE_AS_FINISHED':
-          return {
-            ...state,
-            ciclos: state.ciclos.map((ciclo) => {
-              if (ciclo.id === state.cicloAtivoId) {
-                return { ...ciclo, finishedDate: new Date() }
-              } else {
-                return ciclo
-              }
-            }),
-            cicloAtivoId: null,
-          }
-        default:
-          return state
-      }
-    },
-    {
-      ciclos: [],
-      cicloAtivoId: null,
-    },
-  )
+  const [ciclosState, dispatch] = useReducer(ciclosReducers, {
+    ciclos: [],
+    cicloAtivoId: null,
+  })
 
   const [totalSegundosPassados, setTotalSegundosPassados] = useState(0)
 
   const { ciclos, cicloAtivoId } = ciclosState
+
   const cicloAtivo = ciclos.find((ciclo) => ciclo.id === cicloAtivoId)
 
   function setSegundosPassados(seconds: number) {
@@ -92,12 +47,7 @@ export function CiclosContextProvider({
   }
 
   function markCurrentCicloAsFinished() {
-    dispatch({
-      type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
-      payload: {
-        cicloAtivoId,
-      },
-    })
+    dispatch(markCurrentCycleAsFinishedAction())
   }
 
   function createNewCiclo(data: CreateCicloData) {
@@ -108,22 +58,12 @@ export function CiclosContextProvider({
       startDate: new Date(),
     }
 
-    dispatch({
-      type: 'ADD_NEW_CICLO',
-      payload: {
-        novoCiclo,
-      },
-    })
+    dispatch(addNewCycleAction(novoCiclo))
     setTotalSegundosPassados(0)
   }
 
   function interruptedCurrentCiclo() {
-    dispatch({
-      type: 'INTERRUPT_CURRENT_CYCLE',
-      payload: {
-        cicloAtivoId,
-      },
-    })
+    dispatch(interruptedCurrentCicloAction())
   }
 
   return (
