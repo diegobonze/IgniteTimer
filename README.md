@@ -35,8 +35,9 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 ## 💻 Projeto
 
-O Rocketpay é um componente que simula o formulário de preenchimento de cartão de crédito, onde é possível adicionar máscara aos inputs e atualizar elementos HTML via DOM.
-
+- Utilização de alguns hooks do react, como: useEffect(), useContext(), useForm(), useReducer().
+- Roteamento com react-router-dom.
+- Bibliotecas como 'Immer', para trabalhar com o conceito de imutabilidade de uma forma mais simples, e 'zod' para trabalhar com validações em fomulários.
 ## 🔖 Layout
 
 Você pode visualizar o layout do projeto através [DESSE LINK](https://www.figma.com/file/CVMCjQD4CVUYuoU06SFnrl/Ignite-Timer-(Community)?node-id=0-1&t=mJO4rbRgzNBvXSes-0). É necessário ter conta no [Figma](https://figma.com) para acessá-lo.
